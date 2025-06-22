@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@inquirer/prompts": "^7.5.3",
+    "inquirer": "^10.1.8"
+  }
+}

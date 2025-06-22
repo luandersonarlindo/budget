@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Primeiro Mês",
+    "value": 2500,
+    "categories": [
+      {
+        "name": "Gastos Essenciais",
+        "percent": 50,
+        "expenses": [
+          {
+            "description": "Moto",
+            "value": 680
+          }
+        ]
+      },
+      {
+        "name": "Prioridades Financeiras",
+        "percent": 20,
+        "expenses": [
+          {
+            "description": "Seguro",
+            "value": 150
+          }
+        ]
+      },
+      {
+        "name": "Estilo de Vida",
+        "percent": 30,
+        "expenses": [
+          {
+            "description": "Academia",
+            "value": 75
+          }
+        ]
+      }
+    ]
+  }
+]
