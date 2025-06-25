@@ -5,6 +5,7 @@ Este é um aplicativo de linha de comando (CLI) para controle de orçamentos e d
 ## Funcionalidades
 
 - Cadastro de múltiplos orçamentos
+- **Copiar orçamento existente com todas as despesas** (NOVO)
 - Alteração e exclusão de orçamentos
 - Visualização de todos os orçamentos cadastrados
 - Gerenciamento de despesas para cada orçamento:
@@ -33,12 +34,17 @@ node script.js
 ### Fluxo de uso
 
 1. **Menu Principal**
-   - Acessar menu de Orçamentos
+   - Cadastrar novo orçamento
+   - **Copiar orçamento existente** (NOVO)
+   - Listar orçamentos (e acessar o menu de despesas de cada um)
+   - Alterar orçamento
+   - Deletar orçamento
    - Sair
 
 2. **Menu de Orçamentos**
    - Cadastrar novo orçamento
-   - Listar orçamentos (e acessar o menu de despesas de cada um)
+   - Copiar orçamento existente
+   - Listar orçamentos
    - Alterar orçamento
    - Deletar orçamento
    - Voltar
@@ -50,6 +56,8 @@ node script.js
    - Deletar despesa
    - Voltar
 
+**Todos os menus de seleção agora possuem a opção 'Voltar', permitindo retornar ao menu anterior sem realizar alterações.**
+
 Todas as operações são feitas por menus interativos, bastando escolher a opção desejada e seguir as instruções na tela.
 
 ## Estrutura dos dados
@@ -58,8 +66,9 @@ Todas as operações são feitas por menus interativos, bastando escolher a opç
 
 ## Observações
 - O programa é totalmente em português.
-- Não há limite para a quantidade de orçamentos ou despesas.
-- O arquivo `budget.json` pode ser editado manualmente, mas recomenda-se usar apenas o programa para evitar erros de formatação.
+- **Novidades:**
+  - Opção de copiar orçamento já existente, incluindo todas as despesas.
+  - Todos os menus de seleção (orçamento, categoria, despesa) agora possuem a opção de voltar.
 
 ## Licença
 Este projeto é livre para uso pessoal e educacional.

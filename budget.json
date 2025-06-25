@@ -1,6 +1,6 @@
 [
   {
-    "name": "Primeiro Mês",
+    "name": "Primeiro mês",
     "value": 9000,
     "categories": [
       {
@@ -9,7 +9,7 @@
         "expenses": [
           {
             "description": "Moto",
-            "value": 680
+            "value": 4000
           }
         ]
       },
@@ -19,7 +19,11 @@
         "expenses": [
           {
             "description": "Seguro",
-            "value": 150
+            "value": 120
+          },
+          {
+            "description": "Emplacamento",
+            "value": 500
           }
         ]
       },
@@ -30,6 +34,10 @@
           {
             "description": "Academia",
             "value": 75
+          },
+          {
+            "description": "Capacete",
+            "value": 500
           }
         ]
       }

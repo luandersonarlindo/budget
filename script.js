@@ -63,6 +63,42 @@ const createOrUpdateBudget = async () => {
     }
 }
 
+// Função para copiar um orçamento existente com todas as despesas
+const copyBudget = async () => {
+    if (budgets.length === 0) {
+        message = "Nenhum orçamento disponível para copiar."
+        return
+    }
+    const idx = await select({
+        message: 'Selecione o orçamento para copiar:',
+        choices: [
+            ...budgets.map((b, i) => ({ name: b.name, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
+    })
+    if (idx === 'back') return
+    const original = budgets[idx]
+    const name = (await input({ message: 'Nome do novo orçamento:', default: original.name + ' (Cópia)' })).trim()
+    if (!name) {
+        message = "O nome não pode ser vazio."
+        return
+    }
+    const valueStr = await input({ message: 'Valor total do novo orçamento:', default: original.value.toString() })
+    const value = parseFloat(valueStr.replace(',', '.'))
+    if (isNaN(value) || value <= 0) {
+        message = "Valor inválido."
+        return
+    }
+    // Copia as categorias e despesas
+    const categories = original.categories.map(cat => ({
+        name: cat.name,
+        percent: cat.percent,
+        expenses: cat.expenses.map(exp => ({ ...exp }))
+    }))
+    budgets.push({ name, value, categories })
+    message = "Orçamento copiado com sucesso!"
+}
+
 // Lista todos os orçamentos cadastrados
 const listBudgets = async () => {
     if (budgets.length === 0) {
@@ -86,8 +122,12 @@ const updateBudget = async () => {
     }
     const idx = await select({
         message: 'Selecione o orçamento para alterar:',
-        choices: budgets.map((b, i) => ({ name: b.name, value: i }))
+        choices: [
+            ...budgets.map((b, i) => ({ name: b.name, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
     })
+    if (idx === 'back') return
     const name = (await input({ message: 'Novo nome do orçamento:', default: budgets[idx].name })).trim()
     if (!name) {
         message = "O nome não pode ser vazio."
@@ -112,8 +152,12 @@ const deleteBudget = async () => {
     }
     const idx = await select({
         message: 'Selecione o orçamento para deletar:',
-        choices: budgets.map((b, i) => ({ name: b.name, value: i }))
+        choices: [
+            ...budgets.map((b, i) => ({ name: b.name, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
     })
+    if (idx === 'back') return
     const confirm = (await input({ message: `Digite "SIM" para confirmar a exclusão de '${budgets[idx].name}':` })).trim()
     if (confirm.toUpperCase() === 'SIM') {
         budgets.splice(idx, 1)
@@ -161,8 +205,12 @@ const expenseMenu = async (budget) => {
 const addExpenseForBudget = async (budget) => {
     const idxCat = await select({
         message: 'Selecione a categoria:',
-        choices: budget.categories.map((c, i) => ({ name: c.name, value: i }))
+        choices: [
+            ...budget.categories.map((c, i) => ({ name: c.name, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
     })
+    if (idxCat === 'back') return
     const category = budget.categories[idxCat]
     const desc = await input({ message: 'Descrição da despesa:' })
     const valueStr = await input({ message: 'Valor da despesa:' })
@@ -212,8 +260,12 @@ const listExpensesForBudget = async (budget) => {
 const updateExpenseForBudget = async (budget) => {
     const idxCat = await select({
         message: 'Selecione a categoria:',
-        choices: budget.categories.map((c, i) => ({ name: c.name, value: i }))
+        choices: [
+            ...budget.categories.map((c, i) => ({ name: c.name, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
     })
+    if (idxCat === 'back') return
     const category = budget.categories[idxCat]
     if (category.expenses.length === 0) {
         message = 'Nenhuma despesa para alterar nesta categoria.'
@@ -221,8 +273,12 @@ const updateExpenseForBudget = async (budget) => {
     }
     const idxExp = await select({
         message: 'Selecione a despesa para alterar:',
-        choices: category.expenses.map((d, i) => ({ name: `${d.description} (R$ ${d.value.toFixed(2)})`, value: i }))
+        choices: [
+            ...category.expenses.map((d, i) => ({ name: `${d.description} (R$ ${d.value.toFixed(2)})`, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
     })
+    if (idxExp === 'back') return
     const old = category.expenses[idxExp]
     const desc = (await input({ message: 'Nova descrição da despesa:', default: old.description })).trim()
     if (!desc) {
@@ -244,20 +300,27 @@ const updateExpenseForBudget = async (budget) => {
 const deleteExpenseForBudget = async (budget) => {
     const idxCat = await select({
         message: 'Selecione a categoria:',
-        choices: budget.categories.map((c, i) => ({ name: c.name, value: i }))
+        choices: [
+            ...budget.categories.map((c, i) => ({ name: c.name, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
     })
+    if (idxCat === 'back') return
     const category = budget.categories[idxCat]
     if (category.expenses.length === 0) {
         message = 'Nenhuma despesa para deletar nesta categoria.'
         return
     }
-    const choices = category.expenses.map((d, i) => ({ name: `${d.description} (R$ ${d.value.toFixed(2)})`, value: i }))
+    const choices = [
+        ...category.expenses.map((d, i) => ({ name: `${d.description} (R$ ${d.value.toFixed(2)})`, value: i })),
+        { name: 'Voltar', value: 'back' }
+    ]
     const selected = await checkbox({
         message: 'Selecione as despesas para deletar:',
         choices: choices,
         instructions: false
     })
-    if (selected.length === 0) {
+    if (selected.includes('back') || selected.length === 0) {
         message = 'Nenhuma despesa selecionada para deletar.'
         return
     }
@@ -288,6 +351,7 @@ const start = async () => {
             message: 'Menu de Orçamentos >',
             choices: [
                 { name: 'Cadastrar novo orçamento', value: 'create' },
+                { name: 'Copiar orçamento existente', value: 'copy' },
                 { name: 'Listar orçamentos', value: 'listBudgets' },
                 { name: 'Alterar orçamento', value: 'updateBudget' },
                 { name: 'Deletar orçamento', value: 'deleteBudget' },
@@ -297,6 +361,9 @@ const start = async () => {
         switch (option) {
             case 'create':
                 await createOrUpdateBudget()
+                break
+            case 'copy':
+                await copyBudget()
                 break
             case 'listBudgets':
                 if (budgets.length === 0) {
