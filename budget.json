@@ -1,15 +1,23 @@
 [
   {
-    "name": "Primeiro mês",
-    "value": 9000,
+    "name": "Fevereiro 2026",
+    "value": 2500,
     "categories": [
       {
         "name": "Gastos Essenciais",
-        "percent": 50,
+        "percent": 80,
         "expenses": [
           {
             "description": "Moto",
-            "value": 4000
+            "value": 1016
+          },
+          {
+            "description": "Seguro",
+            "value": 114
+          },
+          {
+            "description": "Cartão",
+            "value": 870
           }
         ]
       },
@@ -18,26 +26,20 @@
         "percent": 20,
         "expenses": [
           {
-            "description": "Seguro",
-            "value": 120
-          },
-          {
-            "description": "Emplacamento",
-            "value": 500
-          }
-        ]
-      },
-      {
-        "name": "Estilo de Vida",
-        "percent": 30,
-        "expenses": [
-          {
-            "description": "Academia",
-            "value": 75
-          },
-          {
             "description": "Capacete",
-            "value": 500
+            "value": 50
+          },
+          {
+            "description": "Das",
+            "value": 90
+          },
+          {
+            "description": "Fies",
+            "value": 150
+          },
+          {
+            "description": "Ipva",
+            "value": 190
           }
         ]
       }

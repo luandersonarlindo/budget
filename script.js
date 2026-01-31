@@ -10,6 +10,22 @@ const CATEGORIES = [
     { name: 'Estilo de Vida', percent: 30 }
 ]
 
+// Definição das categorias disponíveis com descrições
+const AVAILABLE_CATEGORIES = [
+    {
+        name: 'Gastos Essenciais',
+        description: 'Despesas básicas e necessárias para manutenção da vida (alimentação, moradia, saúde, transporte essencial).'
+    },
+    {
+        name: 'Prioridades Financeiras',
+        description: 'Investimentos, poupança, quitação de dívidas e criação de reserva de emergência.'
+    },
+    {
+        name: 'Estilo de Vida',
+        description: 'Lazer, hobbies, entretenimento, viagens e outras despesas relacionadas à qualidade de vida.'
+    }
+]
+
 // Carrega os orçamentos do arquivo budget.json
 const loadBudgets = async () => {
     try {
@@ -26,6 +42,79 @@ const saveBudgets = async () => {
     await fs.writeFile('budget.json', JSON.stringify(budgets, null, 2))
 }
 
+// Função para selecionar e personalizar categorias
+const customizeCategories = async () => {
+    console.clear()
+    console.log('\n=== Personalização de Categorias ===\n')
+    console.log('Categorias disponíveis:\n')
+    AVAILABLE_CATEGORIES.forEach((cat, idx) => {
+        console.log(`${idx + 1}. ${cat.name}`)
+        console.log(`   ${cat.description}\n`)
+    })
+
+    const selectedIndices = await checkbox({
+        message: 'Selecione as categorias que deseja incluir no orçamento:',
+        choices: AVAILABLE_CATEGORIES.map((cat, i) => ({
+            name: cat.name,
+            value: i
+        })),
+        instructions: false,
+        validate: (answer) => {
+            if (answer.length === 0) {
+                return 'Selecione pelo menos uma categoria.'
+            }
+            return true
+        }
+    })
+
+    if (selectedIndices.length === 0) {
+        message = "Nenhuma categoria selecionada."
+        return null
+    }
+
+    const customCategories = []
+    let totalPercent = 0
+
+    for (let i = 0; i < selectedIndices.length; i++) {
+        const catIndex = selectedIndices[i]
+        const catName = AVAILABLE_CATEGORIES[catIndex].name
+
+        let percent
+        if (i === selectedIndices.length - 1) {
+            // Última categoria: calcula automaticamente para fechar 100%
+            percent = 100 - totalPercent
+            console.clear()
+            console.log(`\nCategoria: ${catName}`)
+            console.log(`Percentual automático (para totalizar 100%): ${percent}%\n`)
+            await input({ message: 'Pressione Enter para continuar...' })
+        } else {
+            const percentStr = await input({
+                message: `Percentual para '${catName}' (restante: ${100 - totalPercent}%):`
+            })
+            percent = parseFloat(percentStr.replace(',', '.'))
+
+            if (isNaN(percent) || percent <= 0) {
+                message = "Percentual inválido."
+                return null
+            }
+
+            if (totalPercent + percent >= 100) {
+                message = "A soma dos percentuais excedeu 100%."
+                return null
+            }
+        }
+
+        totalPercent += percent
+        customCategories.push({
+            name: catName,
+            percent: percent,
+            expenses: []
+        })
+    }
+
+    return customCategories
+}
+
 // Cria um novo orçamento ou altera um existente
 const createOrUpdateBudget = async () => {
     const name = (await input({ message: 'Nome do orçamento:' })).trim()
@@ -39,25 +128,42 @@ const createOrUpdateBudget = async () => {
         message = "Valor inválido."
         return
     }
-    // Verifica se já existe orçamento com esse nome
-    let existing = budgets.find(b => b.name === name)
-    if (existing) {
-        existing.value = value
-        existing.categories = CATEGORIES.map(cat => ({
+
+    // Escolhe entre categorias padrão ou personalizadas
+    const categoryOption = await select({
+        message: 'Como deseja definir as categorias?',
+        choices: [
+            { name: 'Usar categorias padrão (50% / 20% / 30%)', value: 'default' },
+            { name: 'Personalizar categorias', value: 'custom' },
+            { name: 'Voltar', value: 'back' }
+        ]
+    })
+
+    if (categoryOption === 'back') return
+
+    let categories
+    if (categoryOption === 'custom') {
+        categories = await customizeCategories()
+        if (!categories) return // Erro na personalização
+    } else {
+        categories = CATEGORIES.map(cat => ({
             name: cat.name,
             percent: cat.percent,
             expenses: []
         }))
+    }
+
+    // Verifica se já existe orçamento com esse nome
+    let existing = budgets.find(b => b.name === name)
+    if (existing) {
+        existing.value = value
+        existing.categories = categories
         message = "Orçamento alterado com sucesso!"
     } else {
         budgets.push({
             name,
             value,
-            categories: CATEGORIES.map(cat => ({
-                name: cat.name,
-                percent: cat.percent,
-                expenses: []
-            }))
+            categories: categories
         })
         message = "Orçamento cadastrado com sucesso!"
     }
@@ -114,7 +220,7 @@ const listBudgets = async () => {
     await input({ message: 'Pressione Enter para voltar ao menu.' })
 }
 
-// Altera o nome e valor de um orçamento existente
+// Altera o nome, valor e categorias de um orçamento existente
 const updateBudget = async () => {
     if (budgets.length === 0) {
         message = "Nenhum orçamento cadastrado."
@@ -128,6 +234,7 @@ const updateBudget = async () => {
         ]
     })
     if (idx === 'back') return
+
     const name = (await input({ message: 'Novo nome do orçamento:', default: budgets[idx].name })).trim()
     if (!name) {
         message = "O nome não pode ser vazio."
@@ -139,8 +246,55 @@ const updateBudget = async () => {
         message = "Valor inválido."
         return
     }
+
+    // Pergunta se deseja alterar as categorias
+    const changeCategoriesOption = await select({
+        message: 'Deseja alterar as categorias deste orçamento?',
+        choices: [
+            { name: 'Não, manter categorias atuais', value: 'keep' },
+            { name: 'Sim, usar categorias padrão (50% / 20% / 30%)', value: 'default' },
+            { name: 'Sim, personalizar categorias', value: 'custom' },
+            { name: 'Voltar', value: 'back' }
+        ]
+    })
+
+    if (changeCategoriesOption === 'back') return
+
+    let categories = budgets[idx].categories
+    if (changeCategoriesOption === 'custom') {
+        const customCategories = await customizeCategories()
+        if (!customCategories) return // Erro na personalização
+        // Aviso sobre perda de despesas se as categorias mudarem
+        const confirmChange = (await input({
+            message: 'ATENÇÃO: Alterar categorias apagará todas as despesas registradas. Digite "SIM" para confirmar:'
+        })).trim()
+        if (confirmChange.toUpperCase() !== 'SIM') {
+            message = "Alteração de categorias cancelada."
+            return
+        }
+        categories = customCategories
+    } else if (changeCategoriesOption === 'default') {
+        // Aviso sobre perda de despesas se as categorias mudarem
+        const confirmChange = (await input({
+            message: 'ATENÇÃO: Alterar categorias apagará todas as despesas registradas. Digite "SIM" para confirmar:'
+        })).trim()
+        if (confirmChange.toUpperCase() !== 'SIM') {
+            message = "Alteração de categorias cancelada."
+            return
+        }
+        categories = CATEGORIES.map(cat => ({
+            name: cat.name,
+            percent: cat.percent,
+            expenses: []
+        }))
+    }
+    // Se 'keep', mantém as categorias atuais sem alteração
+
     budgets[idx].name = name
     budgets[idx].value = value
+    if (changeCategoriesOption !== 'keep') {
+        budgets[idx].categories = categories
+    }
     message = "Orçamento alterado com sucesso!"
 }
 
@@ -178,6 +332,7 @@ const expenseMenu = async (budget) => {
                 { name: 'Adicionar despesa', value: 'add' },
                 { name: 'Listar despesas', value: 'list' },
                 { name: 'Alterar despesa', value: 'updateExpense' },
+                { name: 'Mover despesa para outra categoria', value: 'moveExpense' },
                 { name: 'Deletar despesa', value: 'delete' },
                 { name: 'Voltar', value: 'back' }
             ]
@@ -191,6 +346,9 @@ const expenseMenu = async (budget) => {
                 break
             case 'updateExpense':
                 await updateExpenseForBudget(budget)
+                break
+            case 'moveExpense':
+                await moveExpenseToCategory(budget)
                 break
             case 'delete':
                 await deleteExpenseForBudget(budget)
@@ -294,6 +452,58 @@ const updateExpenseForBudget = async (budget) => {
     old.description = desc
     old.value = value
     message = 'Despesa alterada com sucesso!'
+}
+
+// Move uma despesa para outra categoria
+const moveExpenseToCategory = async (budget) => {
+    if (budget.categories.length < 2) {
+        message = 'É necessário ter pelo menos 2 categorias para mover despesas.'
+        return
+    }
+
+    const idxCatFrom = await select({
+        message: 'Selecione a categoria de origem:',
+        choices: [
+            ...budget.categories.map((c, i) => ({ name: c.name, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
+    })
+    if (idxCatFrom === 'back') return
+
+    const categoryFrom = budget.categories[idxCatFrom]
+    if (categoryFrom.expenses.length === 0) {
+        message = 'Nenhuma despesa nesta categoria para mover.'
+        return
+    }
+
+    const idxExp = await select({
+        message: 'Selecione a despesa para mover:',
+        choices: [
+            ...categoryFrom.expenses.map((d, i) => ({ name: `${d.description} (R$ ${d.value.toFixed(2)})`, value: i })),
+            { name: 'Voltar', value: 'back' }
+        ]
+    })
+    if (idxExp === 'back') return
+
+    const idxCatTo = await select({
+        message: 'Selecione a categoria de destino:',
+        choices: [
+            ...budget.categories
+                .map((c, i) => ({ name: c.name, value: i }))
+                .filter((_, i) => i !== idxCatFrom),
+            { name: 'Voltar', value: 'back' }
+        ]
+    })
+    if (idxCatTo === 'back') return
+
+    const categoryTo = budget.categories[idxCatTo]
+    const expense = categoryFrom.expenses[idxExp]
+
+    // Remove da categoria de origem e adiciona na categoria de destino
+    categoryFrom.expenses.splice(idxExp, 1)
+    categoryTo.expenses.push(expense)
+
+    message = `Despesa movida de '${categoryFrom.name}' para '${categoryTo.name}' com sucesso!`
 }
 
 // Deleta despesas de um orçamento (novo menu)
