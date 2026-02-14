@@ -44,5 +44,71 @@
         ]
       }
     ]
+  },
+  {
+    "name": "Março 2026",
+    "value": 2500,
+    "categories": [
+      {
+        "name": "Gastos Essenciais",
+        "percent": 80,
+        "expenses": [
+          {
+            "description": "Moto",
+            "value": 1016
+          },
+          {
+            "description": "Seguro",
+            "value": 114
+          },
+          {
+            "description": "Cartão",
+            "value": 325
+          },
+          {
+            "description": "Fies",
+            "value": 150
+          },
+          {
+            "description": "Das",
+            "value": 90
+          },
+          {
+            "description": "Silvania",
+            "value": 200
+          },
+          {
+            "description": "Lucas",
+            "value": 50
+          },
+          {
+            "description": "Ipva",
+            "value": 55
+          }
+        ]
+      },
+      {
+        "name": "Prioridades Financeiras",
+        "percent": 20,
+        "expenses": [
+          {
+            "description": "Tia Rose",
+            "value": 60
+          },
+          {
+            "description": "Perfume",
+            "value": 180
+          },
+          {
+            "description": "Calças",
+            "value": 180
+          },
+          {
+            "description": "Ipva",
+            "value": 55
+          }
+        ]
+      }
+    ]
   }
 ]

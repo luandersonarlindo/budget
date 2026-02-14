@@ -5,12 +5,17 @@ Este é um aplicativo de linha de comando (CLI) para controle de orçamentos e d
 ## Funcionalidades
 
 - Cadastro de múltiplos orçamentos
-- **Personalização de categorias com porcentagens flexíveis** (NOVO)
+- **Formatação monetária no padrão brasileiro (pt-BR)**
+  - Entrada de valores: aceita `1.250,50` ou `1250,50`
+  - Saída de valores: exibe `R$ 1.250,50`
+  - Separador de milhar: ponto (.)
+  - Separador decimal: vírgula (,)
+- **Personalização de categorias com porcentagens flexíveis**
   - Escolha entre categorias padrão (50% / 20% / 30%) ou personalize
   - Selecione quais categorias incluir no orçamento
   - Defina porcentagens customizadas (sempre totalizando 100%)
 - **Copiar orçamento existente com todas as despesas**
-- **Alteração completa de orçamentos** (NOVO)
+- **Alteração completa de orçamentos**
   - Alterar nome e valor
   - Alterar categorias (com opção de manter as atuais)
   - Proteção contra perda acidental de dados
@@ -18,7 +23,7 @@ Este é um aplicativo de linha de comando (CLI) para controle de orçamentos e d
 - Visualização de todos os orçamentos cadastrados
 - Gerenciamento de despesas para cada orçamento:
   - Adicionar, listar, alterar e deletar despesas
-  - **Mover despesas entre categorias** (NOVO)
+  - **Mover despesas entre categorias**
   - Despesas organizadas por categorias customizáveis
   - Três categorias disponíveis: Gastos Essenciais, Prioridades Financeiras, Estilo de Vida
 - Armazenamento automático dos dados em arquivo local (`budget.json`)
@@ -40,6 +45,16 @@ No terminal, execute:
 ```bash
 node script.js
 ```
+
+### Entrada de Valores
+
+O sistema aceita valores monetários no padrão brasileiro:
+- **Com separadores:** `1.250,50` → R$ 1.250,50
+- **Sem separador de milhar:** `1250,50` → R$ 1.250,50
+- **Apenas vírgula decimal:** `1250,5` → R$ 1.250,50
+- **Percentuais:** `30,5` ou `30.5` → 30,5%
+
+**Importante:** Ao editar valores existentes, o sistema exibe o valor padrão já formatado (ex: `1.250,50`). Você pode pressionar Enter para manter o valor ou digitar um novo.
 
 ### Fluxo de uso
 
@@ -91,12 +106,17 @@ Todas as operações são feitas por menus interativos, bastando escolher a opç
 
 ## Observações
 - O programa é totalmente em português.
-- **Novidades:**
+- **Formatação monetária:**
+  - Todos os valores são formatados no padrão brasileiro (R$ 1.250,50)
+  - Aceita entrada com vírgula ou ponto como separador decimal
+  - Aceita entrada com ou sem separador de milhar
+  - Valores padrão em edições são exibidos formatados corretamente
+- **Funcionalidades principais:**
   - Personalização completa de categorias e porcentagens
   - Opção de copiar orçamento já existente, incluindo todas as despesas
   - Alteração de categorias em orçamentos existentes (com proteção contra perda de dados)
-  - **Mover despesas entre categorias diferentes**
-  - Todos os menus de seleção (orçamento, categoria, despesa) agora possuem a opção de voltar
+  - Mover despesas entre categorias diferentes
+  - Todos os menus de seleção (orçamento, categoria, despesa) possuem a opção de voltar
 
 ## Licença
 Este projeto é livre para uso pessoal e educacional.

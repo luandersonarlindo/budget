@@ -4,7 +4,24 @@ Este documento explica, de forma simples e direta, o funcionamento de cada parte
 
 ## Novidades e Alterações Recentes
 
-### 1. Personalização de Categorias
+### 1. Formatação Monetária no Padrão Brasileiro
+- Sistema completo de formatação de valores no padrão pt-BR (R$ 1.250,50)
+- **Entrada de valores:**
+  - Aceita vírgula (`,`) como separador decimal
+  - Aceita ponto (`.`) como separador de milhar
+  - Exemplos aceitos: `1.250,50`, `1250,50`, `1250,5`
+  - Função `parseUserValue()` processa a entrada do usuário
+- **Saída de valores:**
+  - Exibe valores com símbolo R$ e espaço
+  - Separador de milhar: ponto (.)
+  - Separador decimal: vírgula (,)
+  - Função `formatCurrency()` formata para exibição
+- **Valores padrão em edições:**
+  - Exibidos no formato brasileiro sem símbolo (ex: `1.250,50`)
+  - Função `formatValueForInput()` formata para entrada
+  - Evita conversão incorreta ao pressionar Enter sem alterar
+
+### 2. Personalização de Categorias
 - Agora é possível escolher entre categorias padrão (50% / 20% / 30%) ou personalizar completamente.
 - O usuário pode selecionar quais das 3 categorias disponíveis deseja incluir no orçamento (1, 2 ou todas).
 - Para cada categoria selecionada, define-se uma porcentagem customizada.
@@ -14,7 +31,7 @@ Este documento explica, de forma simples e direta, o funcionamento de cada parte
   - Gastos Essenciais 50% + Prioridades Financeiras 50%
   - Gastos Essenciais 30% + Prioridades Financeiras 20% + Estilo de Vida 50%
 
-### 2. Alteração de Categorias em Orçamentos Existentes
+### 3. Alteração de Categorias em Orçamentos Existentes
 - Ao alterar um orçamento, além de nome e valor, agora é possível alterar as categorias.
 - Opções disponíveis:
   - Manter categorias atuais
@@ -22,17 +39,17 @@ Este documento explica, de forma simples e direta, o funcionamento de cada parte
   - Personalizar categorias
 - **Proteção contra perda de dados**: Quando categorias são alteradas, o sistema avisa que todas as despesas serão apagadas e solicita confirmação digitando "SIM".
 
-### 3. Opção de Copiar Orçamento Existente
+### 4. Opção de Copiar Orçamento Existente
 - Agora é possível copiar um orçamento já cadastrado, incluindo todas as despesas e categorias.
 - Ao selecionar "Copiar orçamento existente" no menu principal, o usuário escolhe um orçamento, define novo nome e valor, e a cópia é criada com todas as despesas do original.
 
-### 4. Mover Despesas Entre Categorias
+### 5. Mover Despesas Entre Categorias
 - Nova funcionalidade que permite mover uma despesa de uma categoria para outra dentro do mesmo orçamento.
 - Útil para reclassificar despesas sem precisar deletar e recriar.
 - Requer pelo menos 2 categorias no orçamento.
 - A despesa mantém descrição e valor ao ser movida.
 
-### 5. Opção de Voltar em Todos os Menus
+### 6. Opção de Voltar em Todos os Menus
 - Todos os menus de seleção (orçamento, categoria, despesa) agora possuem a opção "Voltar".
 - Isso permite retornar ao menu anterior sem realizar nenhuma alteração, tornando a navegação mais segura e intuitiva.
 
@@ -59,6 +76,27 @@ const fs = require('fs').promises
 - `budgets`: Array que armazena todos os orçamentos cadastrados.
 - `CATEGORIES`: Array de objetos com as categorias padrão de despesas (50% / 20% / 30%), usado quando o usuário escolhe não personalizar.
 - `AVAILABLE_CATEGORIES`: Array de objetos com todas as categorias disponíveis, incluindo nome e descrição detalhada de cada uma. Usado no processo de personalização.
+
+### 2.1. Funções de Formatação Monetária
+- `formatCurrency(value)`: Formata um valor numérico para exibição no padrão brasileiro com símbolo de moeda.
+  - Entrada: `1250.50`
+  - Saída: `"R$ 1.250,50"`
+  - Usa `Intl.NumberFormat('pt-BR')` com estilo de moeda
+
+- `formatValueForInput(value)`: Formata um valor numérico para entrada do usuário (sem símbolo de moeda).
+  - Entrada: `1250.50`
+  - Saída: `"1.250,50"`
+  - Usado em valores padrão ao editar orçamentos e despesas
+  - Previne conversão incorreta quando o usuário pressiona Enter sem alterar
+
+- `parseUserValue(valueStr)`: Converte a entrada do usuário para valor numérico.
+  - Remove pontos (separadores de milhar)
+  - Substitui vírgula por ponto (separador decimal JavaScript)
+  - Exemplos:
+    - `"1.250,50"` → `1250.50`
+    - `"1250,50"` → `1250.50`
+    - `"1250.5"` → `1250.5`
+  - Retorna `NaN` se a entrada for inválida
 
 ### 3. Funções de Arquivo
 - `loadBudgets()`: Lê o arquivo `budget.json` e carrega os orçamentos para a variável `budgets`. Se o arquivo não existir ou estiver corrompido, inicializa como array vazio.
@@ -145,9 +183,14 @@ O sistema oferece 3 categorias que podem ser utilizadas de forma flexível:
 ---
 
 **Resumo das últimas melhorias:**
+- **Sistema completo de formatação monetária no padrão brasileiro (pt-BR)**
+  - Funções `formatCurrency()`, `formatValueForInput()` e `parseUserValue()`
+  - Aceita entrada com vírgula ou ponto como separadores
+  - Exibe valores no formato R$ 1.250,50
+  - Valores padrão em edições formatados corretamente
 - Sistema completo de personalização de categorias com porcentagens flexíveis
 - Alteração de categorias em orçamentos existentes com proteção contra perda de dados
 - Adicionada função para copiar orçamento existente com todas as despesas
-- **Nova funcionalidade para mover despesas entre categorias**
+- Nova funcionalidade para mover despesas entre categorias
 - Todos os menus de seleção agora possuem a opção de voltar
 - Descrições detalhadas para cada categoria disponível

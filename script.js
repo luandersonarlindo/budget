@@ -4,6 +4,25 @@ const fs = require('fs').promises
 
 let message = "Bem vindo ao App de Metas";
 let budgets = [] // Lista de orçamentos cadastrados
+
+// Função para formatação de valores monetários no padrão brasileiro
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+}
+
+// Função para formatar valor numérico para entrada do usuário (sem símbolo de moeda)
+const formatValueForInput = (value) => {
+    return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+}
+
+// Função para converter entrada de valor do usuário (aceita vírgula e ponto como separadores decimais)
+const parseUserValue = (valueStr) => {
+    if (!valueStr) return NaN;
+    // Remove pontos (separadores de milhar) e substitui vírgula por ponto (decimal)
+    const normalized = valueStr.trim().replace(/\./g, '').replace(',', '.');
+    return parseFloat(normalized);
+}
+
 const CATEGORIES = [
     { name: 'Gastos Essenciais', percent: 50 },
     { name: 'Prioridades Financeiras', percent: 20 },
@@ -91,7 +110,7 @@ const customizeCategories = async () => {
             const percentStr = await input({
                 message: `Percentual para '${catName}' (restante: ${100 - totalPercent}%):`
             })
-            percent = parseFloat(percentStr.replace(',', '.'))
+            percent = parseUserValue(percentStr)
 
             if (isNaN(percent) || percent <= 0) {
                 message = "Percentual inválido."
@@ -123,7 +142,7 @@ const createOrUpdateBudget = async () => {
         return
     }
     const valueStr = await input({ message: 'Valor total do orçamento:' })
-    const value = parseFloat(valueStr.replace(',', '.'))
+    const value = parseUserValue(valueStr)
     if (isNaN(value) || value <= 0) {
         message = "Valor inválido."
         return
@@ -189,8 +208,8 @@ const copyBudget = async () => {
         message = "O nome não pode ser vazio."
         return
     }
-    const valueStr = await input({ message: 'Valor total do novo orçamento:', default: original.value.toString() })
-    const value = parseFloat(valueStr.replace(',', '.'))
+    const valueStr = await input({ message: 'Valor total do novo orçamento:', default: formatValueForInput(original.value) })
+    const value = parseUserValue(valueStr)
     if (isNaN(value) || value <= 0) {
         message = "Valor inválido."
         return
@@ -213,7 +232,7 @@ const listBudgets = async () => {
     }
     let text = '\nOrçamentos cadastrados:'
     budgets.forEach((b, i) => {
-        text += `\n${i + 1}. ${b.name} (R$ ${b.value.toFixed(2)})`
+        text += `\n${i + 1}. ${b.name} (${formatCurrency(b.value)})`
     })
     console.clear()
     console.log(text + '\n')
@@ -240,8 +259,8 @@ const updateBudget = async () => {
         message = "O nome não pode ser vazio."
         return
     }
-    const valueStr = await input({ message: 'Novo valor total do orçamento:', default: budgets[idx].value.toString() })
-    const value = parseFloat(valueStr.replace(',', '.'))
+    const valueStr = await input({ message: 'Novo valor total do orçamento:', default: formatValueForInput(budgets[idx].value) })
+    const value = parseUserValue(valueStr)
     if (isNaN(value) || value <= 0) {
         message = "Valor inválido."
         return
@@ -372,7 +391,7 @@ const addExpenseForBudget = async (budget) => {
     const category = budget.categories[idxCat]
     const desc = await input({ message: 'Descrição da despesa:' })
     const valueStr = await input({ message: 'Valor da despesa:' })
-    const value = parseFloat(valueStr.replace(',', '.'))
+    const value = parseUserValue(valueStr)
     if (!desc || isNaN(value) || value <= 0) {
         message = "Descrição ou valor inválido."
         return
@@ -384,20 +403,20 @@ const addExpenseForBudget = async (budget) => {
 // Lista as despesas de um orçamento (novo menu)
 const listExpensesForBudget = async (budget) => {
     while (true) {
-        let text = `\nOrçamento: ${budget.name} (R$ ${budget.value.toFixed(2)})\n`
+        let text = `\nOrçamento: ${budget.name} (${formatCurrency(budget.value)})\n`
         let hasExpense = false
         budget.categories.forEach(cat => {
             const allowedValue = budget.value * (cat.percent / 100)
             const spentValue = cat.expenses.reduce((sum, d) => sum + d.value, 0)
             const availableValue = allowedValue - spentValue
             text += `\n${cat.name} (${cat.percent}%):\n`
-            text += `  Limite: R$ ${allowedValue.toFixed(2)} | Gasto: R$ ${spentValue.toFixed(2)} | Disponível: R$ ${availableValue.toFixed(2)}\n`
+            text += `  Limite: ${formatCurrency(allowedValue)} | Gasto: ${formatCurrency(spentValue)} | Disponível: ${formatCurrency(availableValue)}\n`
             if (cat.expenses.length === 0) {
                 text += '  Nenhuma despesa.\n'
             } else {
                 hasExpense = true
                 cat.expenses.forEach(d => {
-                    text += `  - ${d.description}: R$ ${d.value.toFixed(2)}\n`
+                    text += `  - ${d.description}: ${formatCurrency(d.value)}\n`
                 })
             }
         })
@@ -432,7 +451,7 @@ const updateExpenseForBudget = async (budget) => {
     const idxExp = await select({
         message: 'Selecione a despesa para alterar:',
         choices: [
-            ...category.expenses.map((d, i) => ({ name: `${d.description} (R$ ${d.value.toFixed(2)})`, value: i })),
+            ...category.expenses.map((d, i) => ({ name: `${d.description} (${formatCurrency(d.value)})`, value: i })),
             { name: 'Voltar', value: 'back' }
         ]
     })
@@ -443,8 +462,8 @@ const updateExpenseForBudget = async (budget) => {
         message = 'Descrição não pode ser vazia.'
         return
     }
-    const valueStr = await input({ message: 'Novo valor da despesa:', default: old.value.toString() })
-    const value = parseFloat(valueStr.replace(',', '.'))
+    const valueStr = await input({ message: 'Novo valor da despesa:', default: formatValueForInput(old.value) })
+    const value = parseUserValue(valueStr)
     if (isNaN(value) || value <= 0) {
         message = 'Valor inválido.'
         return
@@ -479,7 +498,7 @@ const moveExpenseToCategory = async (budget) => {
     const idxExp = await select({
         message: 'Selecione a despesa para mover:',
         choices: [
-            ...categoryFrom.expenses.map((d, i) => ({ name: `${d.description} (R$ ${d.value.toFixed(2)})`, value: i })),
+            ...categoryFrom.expenses.map((d, i) => ({ name: `${d.description} (${formatCurrency(d.value)})`, value: i })),
             { name: 'Voltar', value: 'back' }
         ]
     })
@@ -522,7 +541,7 @@ const deleteExpenseForBudget = async (budget) => {
         return
     }
     const choices = [
-        ...category.expenses.map((d, i) => ({ name: `${d.description} (R$ ${d.value.toFixed(2)})`, value: i })),
+        ...category.expenses.map((d, i) => ({ name: `${d.description} (${formatCurrency(d.value)})`, value: i })),
         { name: 'Voltar', value: 'back' }
     ]
     const selected = await checkbox({
